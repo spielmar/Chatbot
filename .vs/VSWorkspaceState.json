@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\app",
+    "\\app\\api",
+    "\\app\\api\\chat",
+    "\\components",
+    "\\public",
+    "\\public\\images",
+    "\\types",
+    "\\utils"
+  ],
+  "SelectedNode": "\\app\\page.tsx",
+  "PreviewInSolutionExplorer": false
+}
