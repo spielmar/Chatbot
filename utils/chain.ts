@@ -5,7 +5,8 @@ import {OpenAIEmbeddings} from "langchain/embeddings/openai";
 import {ConversationalRetrievalQAChain} from "langchain/chains";
 
 async function initChain() {
-    const model = new OpenAI({});
+    const model = new OpenAI({model: 'gpt-4', temperature: 0, presence_penalty: -1, top_p: .1});
+    
 
     const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX ?? '');
 
