@@ -13,6 +13,15 @@ export async function POST(request: Request) {
             chat_history: history.map(h => h.content).join("\n"),
         });
 
+  const fs = require('fs');
+  var date_time = new Date();
+   
+   fs.writeFile('log.txt', question + "|" + res.text + "|" + date_time + "\n",  {'flag':'a'},  function(err) {
+        if (err) {
+        return console.error(err);
+    }
+});
+
     console.log(res.sourceDocuments)
 
     const links: string[] = Array.from(new Set(res.sourceDocuments.map((document: {metadata: {source: string}}) => document.metadata.source)))

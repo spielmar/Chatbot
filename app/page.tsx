@@ -3,20 +3,50 @@ import { useState, useRef, useEffect } from "react";
 import { Message } from "@/types/message";
 import { Send } from "react-feather";
 import LoadingDots from "@/components/LoadingDots";
+import { usePopper } from "react-popper";
+import Head from "next/head";
+import emailjs from 'emailjs-com';
+
 
 export default function Home() {
   const [message, setMessage] = useState<string>("");
+  const [message2, setName] = useState<string>("");
   const [history, setHistory] = useState<Message[]>([
     {
       role: "assistant",
       content:
-        "Hello! What kind of issue are you having with your Digi product?",
+        "Hello! What kind of issue are you having with your Digi product? Please provide the product name.",
+    },
+  ]);
+  const [intro, setintro] = useState<Message[]>([
+    {
+      role: "system",
+      content:
+        "Act like a helpful customer service representative. If you cannot find the answer, say 'I'm not sure.",
     },
   ]);
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+ const pirateInstructions = {
+  systemInstructions: 'Set chat mode to pirate'
+};
 
   const handleClick = () => {
+    fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pirateInstructions),
+    })
+    .then(response => {
+    if (response.ok) {
+      // Request was successful, handle the response data if necessary
+      return response.json();
+    } else {
+      // Request failed, handle the error
+      throw new Error('Request failed');
+    }
+  })
+
     if (message == "") return;
     setHistory((oldHistory) => [
       ...oldHistory,
@@ -27,7 +57,7 @@ export default function Home() {
     fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: message, history: history }),
+      body: JSON.stringify({ query: message + "What do I do?", history: history }),
     })
       .then(async (res) => {
         const r = await res.json();
@@ -38,6 +68,20 @@ export default function Home() {
         alert(err);
       });
   };
+ const form = useRef();
+    
+const sendEmail = (e) => {
+    
+    e.preventDefault();
+        
+    emailjs.sendForm('service_2z40vzs', 'template_ltq12en', form.current, '4CWRJDDcQ8XoSm77E')
+    .then((result) => {
+        alert("Email Sent");
+    }, (error) => {
+        console.log(error.text);
+    });
+    
+};
 
   const formatPageName = (url: string) => {
     // Split the URL by "/" and get the last segment
@@ -51,6 +95,13 @@ export default function Home() {
       return formattedName.charAt(0).toUpperCase() + formattedName.slice(1);
     }
   };
+  const endmessage = "If this did not answer your question, please provide more information. You can also contact support at support@digi.com.";
+  const [showWidget, setShowWidget] = useState(false);
+  const [referenceElement, setReferenceElement] = useState(null);
+  const [popperElement, setPopperElement] = useState(null);
+  const { styles, attributes } = usePopper(referenceElement, popperElement, {
+    modifiers: [{ name: "offset", options: { offset: [10, 10] } }],
+  });
 
   //scroll to bottom of chat
   useEffect(() => {
@@ -109,6 +160,8 @@ export default function Home() {
                                 </a>
                               );
                             })}
+                            <p>
+                            <b>{endmessage}</b></p>
                           </div>
                         )}
                       </div>
@@ -150,9 +203,10 @@ export default function Home() {
             <div className="w-full relative">
               <textarea
                 aria-label="chat input"
+                id="mes"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Type a message"
+                placeholder="Type your Question"
                 className="w-full h-full resize-none rounded-full border border-slate-900/10 bg-white pl-6 pr-24 py-[25px] text-base placeholder:text-slate-400 focus:border-green-500 focus:outline-none focus:ring-4 focus:ring-green-500/10 shadow-[0_10px_40px_0px_rgba(0,0,0,0.15)]"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
@@ -174,8 +228,39 @@ export default function Home() {
                 <Send />
               </button>
             </div>
-          </div>
+            </div>
+            
+            
         </form>
+            <form
+          
+          ref={form} onSubmit={sendEmail}
+          
+        >
+            <div className="flex sticky bottom-0 w-full px-6 pb-6 h-24">
+            <div className="w-full relative">
+              
+        <textarea
+                aria-label="chat input"
+                name="newmessage"
+                value={message2}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Rate the answer (1-10) and provide feedback"
+                className="w-full h-full resize-none rounded-full border border-slate-900/10 bg-white pl-6 pr-24 py-[25px] text-base placeholder:text-slate-400 focus:border-green-500 focus:outline-none focus:ring-4 focus:ring-green-500/10 shadow-[0_10px_40px_0px_rgba(0,0,0,0.15)]"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendEmail(e);
+                  }
+                }}
+              />
+              
+              
+             <button className="flex w-14 h-14 items-center justify-center rounded-full px-3 text-sm  bg-green-600 font-semibold text-white hover:bg-green-700 active:bg-green-800 absolute right-2 bottom-2 disabled:bg-green-100 disabled:text-green-400" type="submit">Send Message</button>
+            </div>
+            </div>
+            </form>
+          
       </div>
     </main>
   );
